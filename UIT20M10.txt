@@ -1,0 +1,577 @@
+//rr PROCESS/CPU SCHEDULING################################################
+#include <stdio.h>
+#define MAX 100
+int min(int a, int b) 
+{
+	return (a < b) ? a : b;
+}
+
+int main() 
+{
+	int i,n, quantum;
+	int bt[MAX],tat[MAX],rt[MAX],wt[MAX];
+	float awt = 0, atat = 0;
+	
+	printf("Enter the number of processes: ");
+	scanf("%d", &n);
+	
+	printf("Enter the time quantum: ");
+	scanf("%d", &quantum);
+	
+	printf("Enter burst time for each process:\n");
+	for(i = 0; i < n; i++) 
+	{
+		printf("Process %d: ", i + 1);
+		scanf("%d", &bt[i]);
+		rt[i] = bt[i];
+	}
+	
+	printf("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\n");
+	int currentTime = 0; 
+	int completed = 0; 
+	
+	while (completed < n) 
+	{ 
+		for(i = 0; i < n; i++) 
+		{ 
+			if (rt[i] > 0) 
+			{ 
+				int executeTime = min(quantum, rt[i]); 
+				currentTime = currentTime + executeTime;
+				rt[i] = rt[i]-executeTime; 
+				
+				if (rt[i] == 0) 
+				{ 
+					completed++;
+					wt[i] = currentTime - bt[i]; 
+					tat[i] = wt[i] + bt[i]; 
+					awt += wt[i]; 
+					atat += tat[i]; 
+				}
+			}
+			printf("%d\t%d\t\t%d\t\t%d\n", i + 1, bt[i], wt[i], tat[i]);
+		}
+	}
+	
+	awt /= n;
+	atat /= n;
+	
+	printf("\nAverage Waiting Time: %.2f\n", awt);
+	printf("Average Turnaround Time: %.2f\n", atat);
+	
+	return 0;
+}
+
+
+
+
+PROCESS/CPU scheduling(FCFS)#######################################################################
+
+/#include<stdio.h>
+#define max 100
+
+void main()
+{
+	int i, j, n, bt[max], at[max], wt[max], tat[max];
+	float awt = 0, atat = 0;
+
+	printf("Enter the number of processes: ");
+	scanf("%d", &n);
+
+	printf("Enter the burst time and arrival time of the processes:\n");
+	for(i = 0; i < n; i++)
+	{
+		printf("Process %d:\n", i+1);
+		printf("Burst Time: ");
+		scanf("%d", &bt[i]);
+		printf("Arrival Time: ");
+		scanf("%d", &at[i]);
+	}
+
+	printf("\nProcess\tBurst Time\tArrival Time\tWaiting Time\tTurnaround Time\n\n");
+	for(i = 0; i < n; i++)
+	{
+		wt[i] = 0;
+		tat[i] = 0;
+		for(j = 0; j < i; j++)
+		{
+			wt[i] = wt[i] + bt[j];
+		}
+		wt[i] = wt[i] - at[i]; // Subtracting arrival time to get the correct waiting time
+		tat[i] = wt[i] + bt[i];
+		awt = awt + wt[i];
+		atat = atat + tat[i];
+		printf("%d\t%d\t\t%d\t\t%d\t\t%d\n\n", i+1, bt[i], at[i], wt[i], tat[i]);
+	}
+
+	awt = awt / n;
+	atat = atat / n;
+	printf("Average waiting time = %f\n\n", awt);
+	printf("Average turnaround time = %f\n", atat);
+}
+
+
+
+PAGE replacement (fifo)#########################################################
+
+#include <stdio.h>
+
+int main() 
+{
+    int i, j, f, pf = 0, count = 0, n;
+    int rs[25], m[10];
+
+    printf("Enter the length of the reference string: ");
+    scanf("%d", &n);
+
+    printf("Enter the reference string: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &rs[i]);
+
+    printf("Enter the number of frames: ");
+    scanf("%d", &f);
+
+    for (i = 0; i < f; i++)
+        m[i] = -1;
+
+    printf("\nThe Page Replacement Process is:\n");
+    for (i = 0; i < n; i++) {
+        int found = 0;
+        for (j = 0; j < f; j++) {
+            if (m[j] == rs[i]) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            m[count] = rs[i];
+            pf++;
+            count = (count + 1) % f;
+        }
+        for (j = 0; j < f; j++)
+            printf("\t%d", m[j]);
+        if (!found)
+            printf("\tPF No. %d", pf);
+        printf("\n");
+    }
+
+    printf("\nThe number of Page Faults using FIFO: %d\n", pf);
+    return 0;
+}
+
+
+PAGE REPLACEMENT(LRU)############################################################
+
+#include <stdio.h>
+
+int main() {
+    int i, j, k, f, pf = 0, count = 0, n;
+    int rs[25], m[10], lru[10];
+
+    printf("Enter the length of the reference string: ");
+    scanf("%d", &n);
+
+    printf("Enter the reference string: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &rs[i]);
+
+    printf("Enter the number of frames: ");
+    scanf("%d", &f);
+
+    for (i = 0; i < f; i++) {
+        m[i] = -1;
+        lru[i] = 0;
+    }
+
+    printf("\nThe Page Replacement Process is:\n");
+    for (i = 0; i < n; i++) {
+        int found = 0;
+        for (j = 0; j < f; j++) {
+            if (m[j] == rs[i]) {
+                found = 1;
+                lru[j] = count++;
+                break;
+            }
+        }
+        if (!found) {
+            int min = 0;
+            for (j = 1; j < f; j++) {
+                if (lru[j] < lru[min])
+                    min = j;
+            }
+            m[min] = rs[i];
+            lru[min] = count++;
+            pf++;
+        }
+        for (j = 0; j < f; j++)
+            printf("\t%d", m[j]);
+        if (!found)
+            printf("\tPF No. %d", pf);
+        printf("\n");
+    }
+
+    printf("\nThe number of Page Faults using LRU: %d\n", pf);
+    return 0;
+}
+
+
+
+DISK SCHEDULING(SSTF)####################################################
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+int main() {
+    int RQ[100], n, initial, totalHeadMovement = 0, count = 0;
+
+    printf("Enter the number of Requests: ");
+    scanf("%d", &n);
+
+    printf("Enter the Request sequence: ");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &RQ[i]);
+
+    printf("Enter initial head position: ");
+    scanf("%d", &initial);
+
+    // SSTF disk scheduling algorithm
+    while (count != n) {
+        int minDistance = INT_MAX;
+        int index = -1;
+
+        for (int i = 0; i < n; i++) {
+            int distance = abs(RQ[i] - initial);
+            if (distance < minDistance) 
+            {
+                minDistance = distance;
+                index = i;
+            }
+        }
+
+        totalHeadMovement += minDistance;
+        initial = RQ[index];
+        RQ[index] = INT_MAX;
+        count++;
+    }
+
+    printf("Total head movement is %d\n", totalHeadMovement);
+
+    return 0;
+}
+
+
+##############DISK SCHEDULING(FCFS)####################
+
+#include <stdio.h>
+#include <stdlib.h>
+int main()
+{
+    int RQ[100], i, n, TotalHeadMoment = 0, initial;
+
+    printf("Enter the number of Requests\n");
+    scanf("%d", &n);
+
+    printf("Enter the Requests sequence\n");
+    for (i = 0; i < n; i++)
+        scanf("%d", &RQ[i]);
+
+    printf("Enter initial head position\n");
+    scanf("%d", &initial);
+
+    for (i = 0; i < n; i++)
+    {
+        TotalHeadMoment = TotalHeadMoment + abs(RQ[i] - initial);
+        initial = RQ[i];
+    }
+
+    printf("Total head moment is %d", TotalHeadMoment);
+    return 0;
+}
+
+
+############DEADLOCK###############################################
+
+#include<stdio.h>
+int max[10][10], allocation[10][10], need[10][10];
+int avail[10];
+int np, nr;
+void readmatrix(int matrix[10][10])
+{
+   int i,j;
+   for(i=0;i<np;i++)
+   for(j=0;j<nr;j++)
+      scanf("%d",&matrix[i][j]);
+}
+void display_matrix(int matrix[10][10])
+{
+   int i,j;
+   for(i=0;i<np;i++)
+   {
+      printf("\n P%d",i);
+      for(j=0;j<nr;j++)
+      {
+         printf(" %d",matrix[i][j]);
+      }
+   }
+}
+void calculate_need()
+{
+   int i,j;
+   for(i=0;i<np;i++)
+   for(j=0;j<nr;j++)
+      need[i][j] = max[i][j] - allocation[i][j];
+}
+void banker()
+{
+   int i,j, k=0, flag;
+   int finish[10], safe_seq[10];
+   for(i=0;i<np;i++)
+   {
+      finish[i]=0;
+   }
+   for(i=0;i<np;i++)
+   {
+      flag=0;
+      if(finish[i]==0)
+      {
+         for(j=0;j<nr;j++)
+         {
+            if(need[i][j]>avail[j])
+            {
+	flag=1;
+	break;			
+            }
+         }
+         if(flag==0)
+         {
+            finish[i]=1;
+            safe_seq[k]=i;
+            k++;
+            for(j=0;j<nr;j++)
+               avail[j]+=allocation[i][j];
+            i=-1;
+         }
+      }
+   }
+   flag=0;
+   for(i=0;i<np;i++)
+   {
+      if(finish[i]==0)
+      {
+         printf("\nThe system is in deadlock");
+         flag=1;
+         break;
+      }
+   }
+   if(flag==0)
+   {
+      printf("\n The system is in safe state!! \n Safe sequence is==>");
+      for(i=0;i<np;i++)
+         printf(" P%d",safe_seq[i]);
+   }
+}
+int main()
+{
+   int j;
+   {
+      printf("\nEnter number of processes:: ");
+      scanf("%d",&np);
+      printf("\nEnter number of resources:: ");
+      scanf("%d",&nr);
+      printf("\n Enter initial allocation matrix:: ");
+      readmatrix(allocation);
+      printf("\n Enter Max requirement matrix:: ");
+      readmatrix(max);
+      printf("\n Enter available resources:: ");
+      for(j=0;j<nr;j++)
+         scanf("%d",&avail[j]);
+   }
+   {
+      printf("\n***********Entered Data is ***********\n\n");
+      printf("\nInitial allocation :: \n");
+      display_matrix(allocation);
+      printf("\n\n\n Maximum Requirement\n");
+      display_matrix(max);
+      printf("\nAvailable Resources\n");
+      for(j=0;j<nr;j++)
+         printf(" %d",avail[j]);
+   }
+   {
+   calculate_need();
+   printf("\n\n\nNeed is \n");
+   display_matrix(need);
+   }
+   banker();
+   printf("\n\n\n");
+   return 0;
+}
+
+
+LEXICAL ANALYZER##########################################################
+
+#include<stdio.h>
+#include<unistd.h>
+#include<string.h>
+#include<ctype.h>
+#include<math.h>
+int main()
+{
+        int i, id=0, no =0, op = 0;
+        char s[30] ;
+        
+        printf("Enter Equation : ");
+        fflush(stdout);
+        scanf("%s",s);
+        
+        for(i=0; s[i]!='\0';i++)
+        {
+         char ch = s[i];       
+         if(isalpha(ch))
+         {
+           printf("%c is an identifier \n",ch);
+           id++;
+         }
+         else if(isdigit(ch))
+         {
+             printf("%c is an number\n",ch);
+             no++;
+         }
+         else
+         {
+           printf("%c is an operator\n",ch);
+           op++;
+         }
+        }
+        printf("Total identifiers : %d\n",id);
+        printf("Total number : %d\n",no);
+        printf("Total operator : %d\n",op);
+        printf("Total tokens : %d\n", (id+no+op));
+         
+return 0;
+}
+
+
+
+PROCESS SYNCHRO#################################################################
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+#include<pthread.h>
+#include<unistd.h>
+
+pthread_t philosopher[5];
+pthread_mutex_t chopstick[5];
+
+void *func(void *val)
+{
+   int n = (long) val;
+   printf("Philosopher %d is thinking\n", n);
+   
+   pthread_mutex_trylock(&chopstick[n]);
+   pthread_mutex_trylock(&chopstick[(n+1)%5]);   
+   printf("philosopher %d is eating \n", n);
+      sleep(3);
+   int sleeptime = rand()%10;
+   pthread_mutex_unlock(&chopstick[n]);
+   pthread_mutex_unlock(&chopstick[(n+1)%5]);
+   printf("philosopher %d finished eating in %d seconds \n", n, sleeptime);
+   
+   return(NULL);
+}
+
+int main()
+{
+   srand(time(NULL));
+   int i;
+   for(i=0; i<6; i++)
+      pthread_create(&philosopher[i], NULL, (void*)func, (void*)(long)i);
+   
+   for(i=0; i<5; i++)
+      pthread_join(philosopher[i], NULL);
+}
+
+
+
+SYSTEM CALL###################################################################
+
+
+                         //TO DEMONSTRATE PROCESS SYSTEM CALL
+#include<stdio.h>
+#include<sys/types.h>
+#include<unistd.h>
+int main()
+{
+	pid_t pid;
+	pid = fork();
+	if(pid==-1)
+	{
+	        printf("Fork Failed!!\n");
+	}
+	else if(pid == 0)
+	{
+                printf("Child process ID is :: \"%d\" and my parent process ID is :: \"%d\" \n\n ", getpid(), getppid());
+	}
+	else
+	{
+	        printf("\nParent process ID is :: \"%d\" and may grandparent process ID is :: \"%d\" \n",getpid(), getppid());
+	}
+
+	return 0;
+}
+*/
+
+/*
+                        /TO DEMONSTRATE ORPHAN PROCESS USING sleep()
+#include<stdio.h>
+#include<sys/types.h>
+#include<unistd.h>
+int main()
+{
+	pid_t pid;
+	pid = fork();
+	if(pid == 0)
+	{
+	        printf("Before Sleep!!\n");
+                printf("Child process ID is :: \"%d\" and my parent process ID is :: \"%d\" \n\n ", getpid(), getppid());
+	        
+	        sleep(10);
+	        printf("After Sleep!!\n");
+	        printf("Child process ID is :: \"%d\" and my parent process ID is :: \"%d\" \n\n ", getpid(), getppid());
+	}
+	else
+	{
+	        _exit(0);
+	}
+
+	return 0;
+}
+*/
+
+                        //TO DEMONSTRATE ZOMBIE PROCESS USING _exit()
+#include<stdio.h>
+#include<sys/types.h>
+#include<unistd.h>
+int main()
+{
+	pid_t pid;
+	pid = fork();
+	if(pid == 0)
+	{
+	        printf("Before Sleep!!\n");
+                printf("Child process ID is :: \"%d\" and my parent process ID is :: \"%d\" \n\n ", getpid(), getppid());
+	        
+	        _exit(0);
+	}
+	else
+	{
+	        sleep(2);
+	}
+
+	return 0;
+}
+
+
+
+
